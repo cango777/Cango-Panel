@@ -1,0 +1,1233 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Hukuk Mail Asistanı</title>
+  <script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0f0e0c;
+      --bg2: #181714;
+      --bg3: #211f1b;
+      --border: #2e2b25;
+      --gold: #c9a84c;
+      --gold2: #e8c97a;
+      --red: #c0392b;
+      --red-soft: #2a1410;
+      --green: #2ecc71;
+      --green-soft: #0e2a1a;
+      --text: #f0ece3;
+      --text2: #9c9180;
+      --text3: #5c5646;
+      --accent: #c9a84c;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      font-size: 13px;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* HEADER */
+    .header {
+      padding: 18px 16px 14px;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg2);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .header-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .logo-mark {
+      width: 28px;
+      height: 28px;
+      background: var(--gold);
+      clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      color: #000;
+      font-weight: 700;
+    }
+
+    .logo-text {
+      font-family: 'DM Serif Display', serif;
+      font-size: 15px;
+      color: var(--gold2);
+      letter-spacing: 0.02em;
+    }
+
+    .logo-sub {
+      font-size: 9px;
+      color: var(--text3);
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      margin-top: 1px;
+    }
+
+    .sync-btn {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text2);
+      padding: 5px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 11px;
+      font-family: 'DM Sans', sans-serif;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .sync-btn:hover { border-color: var(--gold); color: var(--gold); }
+    .sync-btn.loading { opacity: 0.5; pointer-events: none; }
+
+    .sync-icon { font-size: 12px; display: inline-block; }
+    .sync-icon.spin { animation: spin 1s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* TABS */
+    .tabs {
+      display: flex;
+      gap: 2px;
+    }
+
+    .tab {
+      flex: 1;
+      padding: 6px 4px;
+      background: none;
+      border: none;
+      color: var(--text3);
+      font-size: 10px;
+      font-family: 'DM Sans', sans-serif;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s;
+      text-align: center;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      font-weight: 500;
+    }
+
+    .tab.active {
+      color: var(--gold);
+      border-bottom-color: var(--gold);
+    }
+
+    .tab:hover:not(.active) { color: var(--text2); }
+
+    /* CONTENT */
+    .content {
+      padding: 14px;
+    }
+
+    .panel { display: none; }
+    .panel.active { display: block; animation: fadeIn 0.25s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* SECTION TITLE */
+    .section-title {
+      font-family: 'DM Serif Display', serif;
+      font-size: 16px;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+
+    .section-sub {
+      font-size: 11px;
+      color: var(--text3);
+      margin-bottom: 14px;
+    }
+
+    /* UNANSWERED MAILS */
+    .unanswered-summary {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .summary-card {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+    }
+
+    .summary-card.alert { border-color: var(--red); background: var(--red-soft); }
+
+    .summary-card-label {
+      font-size: 10px;
+      color: var(--text3);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 4px;
+    }
+
+    .summary-card-value {
+      font-size: 24px;
+      font-family: 'DM Serif Display', serif;
+      color: var(--text);
+    }
+
+    .summary-card.alert .summary-card-value { color: #e74c3c; }
+
+    .mail-item {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px 12px;
+      margin-bottom: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+      position: relative;
+    }
+
+    .mail-item:hover { border-color: var(--gold); }
+    .mail-item.overdue { border-left: 3px solid var(--red); }
+
+    .mail-item-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 4px;
+    }
+
+    .mail-sender {
+      font-weight: 500;
+      color: var(--text);
+      font-size: 12px;
+      flex: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-right: 8px;
+    }
+
+    .mail-days {
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 10px;
+      white-space: nowrap;
+      font-weight: 600;
+    }
+
+    .mail-days.red { background: var(--red-soft); color: #e74c3c; border: 1px solid var(--red); }
+    .mail-days.yellow { background: #2a2010; color: #e6a817; border: 1px solid #8a6010; }
+
+    .mail-subject {
+      font-size: 11px;
+      color: var(--text2);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-bottom: 4px;
+    }
+
+    .mail-meta {
+      display: flex;
+      gap: 10px;
+      font-size: 10px;
+      color: var(--text3);
+    }
+
+    .mail-folder {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      padding: 1px 6px;
+      border-radius: 3px;
+      font-size: 10px;
+    }
+
+    /* PROJECT STATS */
+    .folder-item {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px 12px;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .folder-name {
+      font-size: 12px;
+      color: var(--text);
+      font-weight: 500;
+      flex: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-right: 8px;
+    }
+
+    .folder-count {
+      font-family: 'DM Serif Display', serif;
+      font-size: 20px;
+      color: var(--gold);
+      margin-right: 10px;
+      min-width: 30px;
+      text-align: right;
+    }
+
+    .folder-bar-wrap {
+      width: 60px;
+      height: 4px;
+      background: var(--border);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .folder-bar {
+      height: 100%;
+      background: linear-gradient(90deg, var(--gold), var(--gold2));
+      border-radius: 2px;
+      transition: width 0.6s ease;
+    }
+
+    /* SCOREBOARD */
+    .time-filter {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 14px;
+    }
+
+    .time-btn {
+      flex: 1;
+      padding: 5px;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      color: var(--text3);
+      font-size: 10px;
+      font-family: 'DM Sans', sans-serif;
+      cursor: pointer;
+      border-radius: 4px;
+      transition: all 0.2s;
+      text-align: center;
+      font-weight: 500;
+    }
+
+    .time-btn.active {
+      background: var(--gold);
+      border-color: var(--gold);
+      color: #000;
+      font-weight: 600;
+    }
+
+    .custom-date-row {
+      display: none;
+      gap: 6px;
+      margin-bottom: 14px;
+    }
+
+    .custom-date-row.visible { display: flex; }
+
+    .date-input {
+      flex: 1;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 5px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-family: 'DM Sans', sans-serif;
+    }
+
+    .date-input:focus { outline: none; border-color: var(--gold); }
+
+    .score-item {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px 12px;
+      margin-bottom: 6px;
+      transition: all 0.2s;
+    }
+
+    .score-item:hover { border-color: var(--border); transform: translateX(2px); }
+
+    .score-rank-row {
+      display: flex;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .score-rank {
+      font-family: 'DM Serif Display', serif;
+      font-size: 20px;
+      color: var(--text3);
+      width: 28px;
+    }
+
+    .score-rank.gold { color: var(--gold); }
+    .score-rank.silver { color: #aaa; }
+    .score-rank.bronze { color: #cd7f32; }
+
+    .score-name {
+      flex: 1;
+      font-weight: 500;
+      font-size: 12px;
+    }
+
+    .score-total {
+      font-family: 'DM Serif Display', serif;
+      font-size: 18px;
+      color: var(--gold2);
+    }
+
+    .score-stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 6px;
+    }
+
+    .score-stat {
+      background: var(--bg);
+      border-radius: 4px;
+      padding: 5px 8px;
+      text-align: center;
+    }
+
+    .score-stat-label {
+      font-size: 9px;
+      color: var(--text3);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 2px;
+    }
+
+    .score-stat-value {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    /* TRACKED ADDRESSES */
+    .add-address-row {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 14px;
+    }
+
+    .address-input {
+      flex: 1;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 7px 10px;
+      border-radius: 5px;
+      font-size: 12px;
+      font-family: 'DM Sans', sans-serif;
+    }
+
+    .address-input:focus { outline: none; border-color: var(--gold); }
+
+    .add-btn {
+      background: var(--gold);
+      border: none;
+      color: #000;
+      padding: 7px 12px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 700;
+      transition: all 0.2s;
+    }
+
+    .add-btn:hover { background: var(--gold2); }
+
+    .tracked-item {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px 12px;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .tracked-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--gold), #8a5c10);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 700;
+      color: #000;
+      flex-shrink: 0;
+    }
+
+    .tracked-info { flex: 1; min-width: 0; }
+
+    .tracked-email {
+      font-size: 11px;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .tracked-stats {
+      display: flex;
+      gap: 8px;
+      margin-top: 3px;
+    }
+
+    .tracked-stat {
+      font-size: 10px;
+      color: var(--text3);
+    }
+
+    .tracked-stat span {
+      color: var(--text2);
+      font-weight: 500;
+    }
+
+    .tracked-count {
+      font-family: 'DM Serif Display', serif;
+      font-size: 22px;
+      color: var(--gold);
+    }
+
+    .remove-btn {
+      background: none;
+      border: none;
+      color: var(--text3);
+      cursor: pointer;
+      font-size: 16px;
+      padding: 4px;
+      border-radius: 3px;
+      transition: all 0.2s;
+      line-height: 1;
+    }
+
+    .remove-btn:hover { color: var(--red); background: var(--red-soft); }
+
+    /* EMPTY STATE */
+    .empty {
+      text-align: center;
+      padding: 30px 20px;
+      color: var(--text3);
+    }
+
+    .empty-icon { font-size: 32px; margin-bottom: 8px; opacity: 0.4; }
+    .empty-text { font-size: 12px; }
+
+    /* LOADING SKELETON */
+    .skeleton {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 12px;
+      margin-bottom: 6px;
+      animation: pulse 1.5s infinite;
+    }
+
+    .skeleton-line {
+      height: 10px;
+      background: var(--border);
+      border-radius: 3px;
+      margin-bottom: 6px;
+    }
+
+    .skeleton-line.short { width: 40%; }
+    .skeleton-line.medium { width: 65%; }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    /* DIVIDER */
+    .divider {
+      height: 1px;
+      background: var(--border);
+      margin: 14px 0;
+    }
+
+    /* BADGE */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 7px;
+      border-radius: 10px;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+    }
+
+    .badge-gold { background: #2a2010; color: var(--gold); border: 1px solid #5a4010; }
+    .badge-red { background: var(--red-soft); color: #e74c3c; border: 1px solid var(--red); }
+    .badge-green { background: var(--green-soft); color: var(--green); border: 1px solid #1a5c3a; }
+
+    /* LAST UPDATE */
+    .last-update {
+      text-align: center;
+      font-size: 10px;
+      color: var(--text3);
+      padding: 10px;
+      border-top: 1px solid var(--border);
+      margin-top: 10px;
+    }
+
+    /* SCROLLBAR */
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <div class="logo">
+      <div class="logo-mark">⚖</div>
+      <div>
+        <div class="logo-text">LexPanel</div>
+        <div class="logo-sub">Mail Asistanı</div>
+      </div>
+    </div>
+    <button class="sync-btn" onclick="syncData()">
+      <span class="sync-icon" id="syncIcon">↻</span>
+      Senkronize Et
+    </button>
+  </div>
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('unanswered', this)">🔴 Cevapsız</button>
+    <button class="tab" onclick="switchTab('projects', this)">📁 Projeler</button>
+    <button class="tab" onclick="switchTab('scoreboard', this)">🏆 Ekip</button>
+    <button class="tab" onclick="switchTab('tracked', this)">👤 Takip</button>
+  </div>
+</div>
+
+<div class="content">
+
+  <!-- PANEL 1: UNANSWERED -->
+  <div class="panel active" id="panel-unanswered">
+    <div class="section-title">Cevapsız Mailler</div>
+    <div class="section-sub">2 iş günü geçmiş, yanıt bekleyen mailler</div>
+
+    <div class="unanswered-summary">
+      <div class="summary-card alert">
+        <div class="summary-card-label">Kritik (3+ gün)</div>
+        <div class="summary-card-value" id="criticalCount">—</div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-card-label">Toplam Cevapsız</div>
+        <div class="summary-card-value" id="totalUnanswered">—</div>
+      </div>
+    </div>
+
+    <div id="unansweredList">
+      <div class="skeleton"><div class="skeleton-line medium"></div><div class="skeleton-line short"></div></div>
+      <div class="skeleton"><div class="skeleton-line medium"></div><div class="skeleton-line short"></div></div>
+      <div class="skeleton"><div class="skeleton-line medium"></div><div class="skeleton-line short"></div></div>
+    </div>
+  </div>
+
+  <!-- PANEL 2: PROJECTS -->
+  <div class="panel" id="panel-projects">
+    <div class="section-title">Proje Mail Trafiği</div>
+    <div class="section-sub">Klasör bazlı günlük mail sayıları</div>
+    <div id="projectList">
+      <div class="skeleton"><div class="skeleton-line medium"></div></div>
+      <div class="skeleton"><div class="skeleton-line medium"></div></div>
+      <div class="skeleton"><div class="skeleton-line medium"></div></div>
+    </div>
+  </div>
+
+  <!-- PANEL 3: SCOREBOARD -->
+  <div class="panel" id="panel-scoreboard">
+    <div class="section-title">Ekip Performansı</div>
+    <div class="section-sub">@yavuz-uyanik.av.tr ekibi</div>
+
+    <div class="time-filter">
+      <button class="time-btn active" onclick="setTimeFilter('today', this)">Bugün</button>
+      <button class="time-btn" onclick="setTimeFilter('week', this)">Hafta</button>
+      <button class="time-btn" onclick="setTimeFilter('month', this)">Ay</button>
+      <button class="time-btn" onclick="setTimeFilter('custom', this)">Özel</button>
+    </div>
+
+    <div class="custom-date-row" id="customDateRow">
+      <input type="date" class="date-input" id="startDate" onchange="loadScoreboard()">
+      <input type="date" class="date-input" id="endDate" onchange="loadScoreboard()">
+    </div>
+
+    <div id="scoreboardList">
+      <div class="skeleton"><div class="skeleton-line medium"></div><div class="skeleton-line short"></div></div>
+      <div class="skeleton"><div class="skeleton-line medium"></div><div class="skeleton-line short"></div></div>
+      <div class="skeleton"><div class="skeleton-line medium"></div><div class="skeleton-line short"></div></div>
+    </div>
+  </div>
+
+  <!-- PANEL 4: TRACKED ADDRESSES -->
+  <div class="panel" id="panel-tracked">
+    <div class="section-title">Takip Edilen Adresler</div>
+    <div class="section-sub">Belirli adreslerden gelen mail adetleri</div>
+
+    <div class="add-address-row">
+      <input type="email" class="address-input" id="newAddressInput" placeholder="ornek@domain.com" onkeypress="if(event.key==='Enter') addTrackedAddress()">
+      <button class="add-btn" onclick="addTrackedAddress()">+</button>
+    </div>
+
+    <div id="trackedList">
+      <div class="empty">
+        <div class="empty-icon">📭</div>
+        <div class="empty-text">Henüz takip edilen adres yok.<br>Yukarıdan ekleyebilirsin.</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="last-update" id="lastUpdate">Son güncelleme: —</div>
+
+<script>
+  // ============================================
+  // STATE
+  // ============================================
+  let currentTab = 'unanswered';
+  let currentTimeFilter = 'today';
+  let trackedAddresses = JSON.parse(localStorage.getItem('trackedAddresses') || '[]');
+  let cachedData = { unanswered: [], folders: [], scoreboard: [], tracked: {} };
+
+  // ============================================
+  // OFFICE.JS INIT
+  // ============================================
+  Office.onReady(async (info) => {
+    if (info.host === Office.HostType.Outlook) {
+      await syncData();
+    }
+  });
+
+  // ============================================
+  // TAB SWITCHING
+  // ============================================
+  function switchTab(tab, el) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    el.classList.add('active');
+    document.getElementById('panel-' + tab).classList.add('active');
+    currentTab = tab;
+  }
+
+  // ============================================
+  // SYNC DATA (Main entry point)
+  // ============================================
+  async function syncData() {
+    const icon = document.getElementById('syncIcon');
+    const btn = document.querySelector('.sync-btn');
+    icon.classList.add('spin');
+    btn.classList.add('loading');
+
+    try {
+      await Promise.all([
+        loadUnanswered(),
+        loadProjects(),
+        loadScoreboard(),
+        loadTrackedAddresses()
+      ]);
+
+      const now = new Date();
+      document.getElementById('lastUpdate').textContent =
+        `Son güncelleme: ${now.toLocaleTimeString('tr-TR', {hour:'2-digit', minute:'2-digit'})}`;
+    } catch(e) {
+      console.error('Sync error:', e);
+    }
+
+    icon.classList.remove('spin');
+    btn.classList.remove('loading');
+  }
+
+  // ============================================
+  // BUSINESS DAYS CALCULATION
+  // ============================================
+  function getBusinessDaysDiff(date1, date2) {
+    let count = 0;
+    let cur = new Date(date1);
+    while (cur < date2) {
+      const day = cur.getDay();
+      if (day !== 0 && day !== 6) count++;
+      cur.setDate(cur.getDate() + 1);
+    }
+    return count;
+  }
+
+  // ============================================
+  // UNANSWERED MAILS
+  // ============================================
+  async function loadUnanswered() {
+    const list = document.getElementById('unansweredList');
+    list.innerHTML = '<div class="skeleton"><div class="skeleton-line medium"></div><div class="skeleton-line short"></div></div>'.repeat(3);
+
+    try {
+      const mailbox = Office.context.mailbox;
+      const today = new Date();
+
+      // Get all folders and search for unanswered
+      const unanswered = await getUnansweredMails(today);
+      cachedData.unanswered = unanswered;
+      renderUnanswered(unanswered);
+    } catch(e) {
+      list.innerHTML = '<div class="empty"><div class="empty-icon">⚠️</div><div class="empty-text">Veriler yüklenemedi.<br>Outlook bağlantısını kontrol edin.</div></div>';
+    }
+  }
+
+  async function getUnansweredMails(today) {
+    return new Promise((resolve, reject) => {
+      Office.context.mailbox.getCallbackTokenAsync({isRest: true}, async (result) => {
+        if (result.status !== Office.AsyncResultStatus.Succeeded) {
+          reject(result.error); return;
+        }
+
+        const token = result.value;
+        const apiBase = Office.context.mailbox.restUrl;
+
+        try {
+          // Fetch all mail folders
+          const foldersRes = await fetch(`${apiBase}/v2.0/me/mailFolders?$top=50`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          const foldersData = await foldersRes.json();
+          const folders = foldersData.value || [];
+
+          const unanswered = [];
+
+          // For each folder, check unread mails older than 2 business days
+          for (const folder of folders.slice(0, 15)) {
+            const cutoff = new Date();
+            cutoff.setDate(cutoff.getDate() - 14); // Last 2 weeks max
+            const cutoffStr = cutoff.toISOString();
+
+            const msgsRes = await fetch(
+              `${apiBase}/v2.0/me/mailFolders/${folder.id}/messages?$filter=isRead eq true and receivedDateTime ge ${cutoffStr}&$select=id,subject,from,receivedDateTime,conversationId&$top=50`,
+              { headers: { Authorization: `Bearer ${token}` } }
+            );
+            const msgsData = await msgsRes.json();
+            const msgs = msgsData.value || [];
+
+            for (const msg of msgs) {
+              const received = new Date(msg.receivedDateTime);
+              const bizDays = getBusinessDaysDiff(received, today);
+              if (bizDays < 2) continue;
+
+              // Check if replied
+              const repliesRes = await fetch(
+                `${apiBase}/v2.0/me/messages?$filter=conversationId eq '${msg.conversationId}' and isDraft eq false&$select=from,sentDateTime&$top=20`,
+                { headers: { Authorization: `Bearer ${token}` } }
+              );
+              const repliesData = await repliesRes.json();
+              const replies = (repliesData.value || []).filter(r =>
+                r.from && r.from.emailAddress && r.from.emailAddress.address &&
+                r.from.emailAddress.address.endsWith('@yavuz-uyanik.av.tr') &&
+                new Date(r.sentDateTime) > received
+              );
+
+              if (replies.length === 0) {
+                unanswered.push({
+                  id: msg.id,
+                  subject: msg.subject || '(Konu yok)',
+                  from: msg.from?.emailAddress?.address || 'Bilinmeyen',
+                  receivedDate: received,
+                  businessDays: bizDays,
+                  folder: folder.displayName
+                });
+              }
+            }
+          }
+
+          resolve(unanswered.sort((a,b) => b.businessDays - a.businessDays));
+        } catch(e) {
+          reject(e);
+        }
+      });
+    });
+  }
+
+  function renderUnanswered(mails) {
+    const critical = mails.filter(m => m.businessDays >= 3).length;
+    document.getElementById('criticalCount').textContent = critical;
+    document.getElementById('totalUnanswered').textContent = mails.length;
+
+    const list = document.getElementById('unansweredList');
+
+    if (mails.length === 0) {
+      list.innerHTML = '<div class="empty"><div class="empty-icon">✅</div><div class="empty-text">Harika! Cevapsız mail yok.</div></div>';
+      return;
+    }
+
+    list.innerHTML = mails.map(m => {
+      const dayClass = m.businessDays >= 3 ? 'red' : 'yellow';
+      const dayText = m.businessDays + ' iş günü';
+      return `
+        <div class="mail-item overdue" onclick="openMail('${m.id}')">
+          <div class="mail-item-header">
+            <div class="mail-sender">${escHtml(m.from)}</div>
+            <div class="mail-days ${dayClass}">${dayText}</div>
+          </div>
+          <div class="mail-subject">${escHtml(m.subject)}</div>
+          <div class="mail-meta">
+            <div class="mail-folder">${escHtml(m.folder)}</div>
+            <div>${m.receivedDate.toLocaleDateString('tr-TR')}</div>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  // ============================================
+  // PROJECTS / FOLDERS
+  // ============================================
+  async function loadProjects() {
+    const list = document.getElementById('projectList');
+
+    return new Promise((resolve, reject) => {
+      Office.context.mailbox.getCallbackTokenAsync({isRest: true}, async (result) => {
+        if (result.status !== Office.AsyncResultStatus.Succeeded) { resolve(); return; }
+
+        const token = result.value;
+        const apiBase = Office.context.mailbox.restUrl;
+
+        try {
+          const today = new Date();
+          today.setHours(0,0,0,0);
+          const todayStr = today.toISOString();
+
+          const foldersRes = await fetch(`${apiBase}/v2.0/me/mailFolders?$top=50`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          const foldersData = await foldersRes.json();
+          const folders = (foldersData.value || []).filter(f =>
+            !['Gelen Kutusu','Inbox','Gönderilmiş','Sent Items','Silinmiş','Deleted Items','Gereksiz','Junk Email','Taslaklar','Drafts'].includes(f.displayName)
+          );
+
+          const folderStats = [];
+          for (const folder of folders.slice(0, 20)) {
+            const msgsRes = await fetch(
+              `${apiBase}/v2.0/me/mailFolders/${folder.id}/messages?$filter=receivedDateTime ge ${todayStr}&$count=true&$top=1&$select=id`,
+              { headers: { Authorization: `Bearer ${token}`, Prefer: 'outlook.allow-unsafe-html' } }
+            );
+            const msgsData = await msgsRes.json();
+            const count = msgsData['@odata.count'] || 0;
+            if (count > 0) folderStats.push({ name: folder.displayName, count });
+          }
+
+          folderStats.sort((a,b) => b.count - a.count);
+          cachedData.folders = folderStats;
+          renderProjects(folderStats);
+          resolve();
+        } catch(e) {
+          list.innerHTML = '<div class="empty"><div class="empty-icon">⚠️</div><div class="empty-text">Klasörler yüklenemedi.</div></div>';
+          resolve();
+        }
+      });
+    });
+  }
+
+  function renderProjects(folders) {
+    const list = document.getElementById('projectList');
+    if (folders.length === 0) {
+      list.innerHTML = '<div class="empty"><div class="empty-icon">📁</div><div class="empty-text">Bugün henüz mail gelmedi.</div></div>';
+      return;
+    }
+    const max = folders[0].count;
+    list.innerHTML = folders.map(f => `
+      <div class="folder-item">
+        <div class="folder-name">${escHtml(f.name)}</div>
+        <div class="folder-count">${f.count}</div>
+        <div class="folder-bar-wrap">
+          <div class="folder-bar" style="width:${Math.round((f.count/max)*100)}%"></div>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  // ============================================
+  // SCOREBOARD
+  // ============================================
+  function setTimeFilter(filter, el) {
+    document.querySelectorAll('.time-btn').forEach(b => b.classList.remove('active'));
+    el.classList.add('active');
+    currentTimeFilter = filter;
+
+    const customRow = document.getElementById('customDateRow');
+    if (filter === 'custom') {
+      customRow.classList.add('visible');
+    } else {
+      customRow.classList.remove('visible');
+      loadScoreboard();
+    }
+  }
+
+  function getDateRange() {
+    const now = new Date();
+    let start = new Date();
+
+    if (currentTimeFilter === 'today') {
+      start.setHours(0,0,0,0);
+    } else if (currentTimeFilter === 'week') {
+      const day = start.getDay() || 7;
+      start.setDate(start.getDate() - day + 1);
+      start.setHours(0,0,0,0);
+    } else if (currentTimeFilter === 'month') {
+      start = new Date(now.getFullYear(), now.getMonth(), 1);
+    } else if (currentTimeFilter === 'custom') {
+      const s = document.getElementById('startDate').value;
+      const e = document.getElementById('endDate').value;
+      if (!s || !e) return null;
+      return { start: new Date(s), end: new Date(e + 'T23:59:59') };
+    }
+
+    return { start, end: now };
+  }
+
+  async function loadScoreboard() {
+    const range = getDateRange();
+    if (!range) return;
+
+    const list = document.getElementById('scoreboardList');
+    list.innerHTML = '<div class="skeleton"><div class="skeleton-line medium"></div><div class="skeleton-line short"></div></div>'.repeat(3);
+
+    return new Promise((resolve) => {
+      Office.context.mailbox.getCallbackTokenAsync({isRest: true}, async (result) => {
+        if (result.status !== Office.AsyncResultStatus.Succeeded) { resolve(); return; }
+
+        const token = result.value;
+        const apiBase = Office.context.mailbox.restUrl;
+        const domain = '@yavuz-uyanik.av.tr';
+
+        try {
+          // Search sent items for team members
+          const startStr = range.start.toISOString();
+          const endStr = range.end.toISOString();
+
+          const sentRes = await fetch(
+            `${apiBase}/v2.0/me/mailFolders/SentItems/messages?$filter=sentDateTime ge ${startStr} and sentDateTime le ${endStr}&$select=from,sentDateTime,conversationId,toRecipients&$top=500`,
+            { headers: { Authorization: `Bearer ${token}` } }
+          );
+          const sentData = await sentRes.json();
+          const sentMsgs = sentData.value || [];
+
+          // Aggregate by sender
+          const stats = {};
+          for (const msg of sentMsgs) {
+            const addr = msg.from?.emailAddress?.address || '';
+            if (!addr.endsWith(domain)) continue;
+
+            if (!stats[addr]) stats[addr] = { sent: 0, replied: 0, responseTimes: [] };
+            stats[addr].sent++;
+
+            // Check if it's a reply (has prior message in conversation)
+            if (msg.conversationId) {
+              const prevRes = await fetch(
+                `${apiBase}/v2.0/me/messages?$filter=conversationId eq '${msg.conversationId}'&$select=receivedDateTime,from&$top=20`,
+                { headers: { Authorization: `Bearer ${token}` } }
+              );
+              const prevData = await prevRes.json();
+              const prev = (prevData.value || []).filter(m =>
+                m.from?.emailAddress?.address !== addr &&
+                new Date(m.receivedDateTime) < new Date(msg.sentDateTime)
+              );
+              if (prev.length > 0) {
+                stats[addr].replied++;
+                const firstMsg = prev.sort((a,b) => new Date(a.receivedDateTime) - new Date(b.receivedDateTime))[0];
+                const diff = (new Date(msg.sentDateTime) - new Date(firstMsg.receivedDateTime)) / 3600000;
+                stats[addr].responseTimes.push(diff);
+              }
+            }
+          }
+
+          const sorted = Object.entries(stats).map(([email, s]) => ({
+            email,
+            name: email.split('@')[0].replace('.', ' '),
+            sent: s.sent,
+            replied: s.replied,
+            avgResponse: s.responseTimes.length > 0
+              ? (s.responseTimes.reduce((a,b) => a+b, 0) / s.responseTimes.length).toFixed(1)
+              : '—'
+          })).sort((a,b) => b.sent - a.sent);
+
+          cachedData.scoreboard = sorted;
+          renderScoreboard(sorted);
+          resolve();
+        } catch(e) {
+          list.innerHTML = '<div class="empty"><div class="empty-icon">⚠️</div><div class="empty-text">Veriler yüklenemedi.</div></div>';
+          resolve();
+        }
+      });
+    });
+  }
+
+  function renderScoreboard(members) {
+    const list = document.getElementById('scoreboardList');
+    if (members.length === 0) {
+      list.innerHTML = '<div class="empty"><div class="empty-icon">📊</div><div class="empty-text">Bu dönemde veri bulunamadı.</div></div>';
+      return;
+    }
+
+    const rankClass = (i) => i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : '';
+    const rankSymbol = (i) => i === 0 ? '①' : i === 1 ? '②' : i === 2 ? '③' : (i+1)+'';
+
+    list.innerHTML = members.map((m, i) => `
+      <div class="score-item">
+        <div class="score-rank-row">
+          <div class="score-rank ${rankClass(i)}">${rankSymbol(i)}</div>
+          <div class="score-name">${capitalize(m.name)}</div>
+          <div class="score-total">${m.sent}</div>
+        </div>
+        <div class="score-stats">
+          <div class="score-stat">
+            <div class="score-stat-label">Gönderilen</div>
+            <div class="score-stat-value">${m.sent}</div>
+          </div>
+          <div class="score-stat">
+            <div class="score-stat-label">Yanıtlanan</div>
+            <div class="score-stat-value">${m.replied}</div>
+          </div>
+          <div class="score-stat">
+            <div class="score-stat-label">Ort. Yanıt</div>
+            <div class="score-stat-value">${m.avgResponse === '—' ? '—' : m.avgResponse + 's'}</div>
+          </div>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  // ============================================
+  // TRACKED ADDRESSES
+  // ============================================
+  function addTrackedAddress() {
+    const input = document.getElementById('newAddressInput');
+    const email = input.value.trim().toLowerCase();
+    if (!email || !email.includes('@')) return;
+    if (trackedAddresses.includes(email)) { input.value = ''; return; }
+    trackedAddresses.push(email);
+    localStorage.setItem('trackedAddresses', JSON.stringify(trackedAddresses));
+    input.value = '';
+    loadTrackedAddresses();
+  }
+
+  function removeTrackedAddress(email) {
+    trackedAddresses = trackedAddresses.filter(a => a !== email);
+    localStorage.setItem('trackedAddresses', JSON.stringify(trackedAddresses));
+    loadTrackedAddresses();
+  }
+
+  async function loadTrackedAddresses() {
+    const list = document.getElementById('trackedList');
+
+    if (trackedAddresses.length === 0) {
+      list.innerHTML = '<div class="empty"><div class="empty-icon">📭</div><div class="empty-text">Henüz takip edilen adres yok.<br>Yukarıdan ekleyebilirsin.</div></div>';
+      return;
+    }
+
+    return new Promise((resolve) => {
+      Office.context.mailbox.getCallbackTokenAsync({isRest: true}, async (result) => {
+        if (result.status !== Office.AsyncResultStatus.Succeeded) { resolve(); return; }
+
+        const token = result.value;
+        const apiBase = Office.context.mailbox.restUrl;
+        const today = new Date(); today.setHours(0,0,0,0);
+        const todayStr = today.toISOString();
+        const weekAgo = new Date(today); weekAgo.setDate(weekAgo.getDate() - 7);
+        const weekStr = weekAgo.toISOString();
+
+        const addressStats = [];
+        for (const email of trackedAddresses) {
+          try {
+            const todayRes = await fetch(
+              `${apiBase}/v2.0/me/messages?$filter=from/emailAddress/address eq '${email}' and receivedDateTime ge ${todayStr}&$count=true&$top=1&$select=id`,
+              { headers: { Authorization: `Bearer ${token}` } }
+            );
+            const todayData = await todayRes.json();
+
+            const weekRes = await fetch(
+              `${apiBase}/v2.0/me/messages?$filter=from/emailAddress/address eq '${email}' and receivedDateTime ge ${weekStr}&$count=true&$top=1&$select=id`,
+              { headers: { Authorization: `Bearer ${token}` } }
+            );
+            const weekData = await weekRes.json();
+
+            addressStats.push({
+              email,
+              todayCount: todayData['@odata.count'] || 0,
+              weekCount: weekData['@odata.count'] || 0
+            });
+          } catch(e) {
+            addressStats.push({ email, todayCount: 0, weekCount: 0 });
+          }
+        }
+
+        cachedData.tracked = addressStats;
+        renderTrackedAddresses(addressStats);
+        resolve();
+      });
+    });
+  }
+
+  function renderTrackedAddresses(addresses) {
+    const list = document.getElementById('trackedList');
+    list.innerHTML = addresses.map(a => {
+      const initials = a.email.substring(0,2).toUpperCase();
+      return `
+        <div class="tracked-item">
+          <div class="tracked-avatar">${initials}</div>
+          <div class="tracked-info">
+            <div class="tracked-email">${escHtml(a.email)}</div>
+            <div class="tracked-stats">
+              <div class="tracked-stat">Bugün: <span>${a.todayCount}</span></div>
+              <div class="tracked-stat">Bu hafta: <span>${a.weekCount}</span></div>
+            </div>
+          </div>
+          <div class="tracked-count">${a.todayCount}</div>
+          <button class="remove-btn" onclick="removeTrackedAddress('${a.email}')">×</button>
+        </div>
+      `;
+    }).join('');
+  }
+
+  // ============================================
+  // UTILS
+  // ============================================
+  function openMail(id) {
+    try {
+      Office.context.mailbox.displayMessageForm(id);
+    } catch(e) { console.error(e); }
+  }
+
+  function escHtml(str) {
+    return (str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function capitalize(str) {
+    return str.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+  }
+</script>
+</body>
+</html>
